@@ -1,0 +1,72 @@
+mql5
+//+------------------------------------------------------------------+
+//|                                            Stab AI               |
+//|                           Developer's Site: forexroboteasy.com   |
+//|                           Development: Forex Robot Easy Team     |
+//|                                                                  |
+//|                   Terms of Reference: Stab AI Code Development    |
+//|                                                                  |
+//| This code implements a trading robot based on the assignment      |
+//| requirements mentioned in the terms of reference.                |
+//+------------------------------------------------------------------+
+
+// Include necessary libraries and files
+#include <Trade\Trade.mqh>
+#include <Series\MA.mqh>
+#include <Series\Stochastic.mqh>
+#include <Net\NeuroBayes.mqh>
+
+// Declare global variables
+input int MaximumSymbols = 10;              // Maximum number of trading symbols
+input double InitialLotSize = 0.01;         // Initial lot size
+input int MaximumOrders = 5;                // Maximum number of orders
+input double DrawdownLevel = 0.2;           // Drawdown level
+
+input bool UseAutoLot = true;               // Use autolot functionality
+input double MinLot = 0.01;                 // Minimum lot size
+
+// Declare trading variables
+int totalOrders = 0;                        // Total number of orders
+
+// Define trading function
+void Trade()
+{
+   // Check if maximum number of orders has been reached
+   if(totalOrders >= MaximumOrders)
+      return;
+
+   // Check if maximum number of trading symbols has been reached
+   if(SymbolsTotal() >= MaximumSymbols)
+      return;
+
+   // Check if drawdown level has been reached
+   if(AccountInfoDouble(ACCOUNT_EQUITY) <= AccountInfoDouble(ACCOUNT_BALANCE) * DrawdownLevel)
+      return;
+
+   // Calculate the volume of the first order
+   double volume = 0.0;
+   if(UseAutoLot)
+   {
+      volume = NormalizeDouble(AccountInfoDouble(ACCOUNT_BALANCE) * MinLot, Digits());
+   }
+   else
+   {
+      volume = MinLot;
+   }
+
+   // Place the order
+   if(OrderSend(Symbol(), OP_BUY, volume, Ask, 3, 0, 0, 'Stab AI', 0, 0, Green))
+   {
+      // Increment the total number of orders
+      totalOrders++;
+   }
+}
+
+// Define the OnTick function
+void OnTick()
+{
+   // Call the trade function
+   Trade();
+}
+
+//+------------------------------------------------------------------+
